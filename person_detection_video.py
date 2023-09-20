@@ -14,8 +14,8 @@ CLASSES = ["background", "aeroplane", "bicycle", "bird", "boat",
            "sofa", "train"]
 
 cap = cv2.VideoCapture(0)
-#for i in range(50):
-#    ret, frame = cap.read()
+for i in range(50):
+    ret, frame = cap.read()
 
 def person():
     fps_start_time = datetime.datetime.now()
@@ -86,36 +86,6 @@ person()
 
 template = cv2.imread('data/frame_template.jpg')
 
-def draw():
-    # Vẽ khung cho template
-    w, h = template.shape[1], template.shape[0]
-    top_left = max_loc # điểm trên cùng bên trái
-    top_right = (top_left[0] + w,top_left[1])# điểm trên cùng bên trái
-    bottom_right = (top_left[0] + w, top_left[1] + h)# điểm dưới cùng bên phải
-    bottom_left =  (top_left[0] , top_left[1] + h)# điểm dưới cùng bên phải
-    tâm_x = (top_left[0] + bottom_right[0]) // 2
-    tâm_y = (top_left[1] + bottom_right[1]) // 2
-
-
-    template2 = image[top_left[0]:top_right[0], top_left[1]:bottom_left[1]]
-    #saved_frame = frame[Y_start:endY, startX:endX]
-    cv2.imshow('template2', template2)
-    cv2.imwrite(f'saved_frames/frame_template.jpg', template2)
-  
-
-    cv2.rectangle(image, top_left, bottom_right, (0, 255, 0), 2)
-    cv2.circle(image, top_left, 1, (0, 0, 255), 3) 
-    cv2.circle(image, top_right, 1, (0, 0, 255), 3) 
-    cv2.circle(image, bottom_right, 1, (0, 0, 255), 3)
-    cv2.circle(image, bottom_left, 1, (0, 0, 255), 3)
-
-    cv2.circle(image, (tâm_x, tâm_y), 5, (255, 255, 0), -1)# centroi
-
-    coordinates = [top_left, top_right, bottom_right, bottom_left]
-    #print("Coordinates Array:", coordinates)
-
-    # So sánh tọa độ của template với các đường chia
-
 while True:
 
     ret, image = cap.read()
@@ -150,8 +120,8 @@ while True:
 
     template2 = image[top_left[0]:top_right[0], top_left[1]:bottom_left[1]]
     #saved_frame = frame[Y_start:endY, startX:endX]
-    cv2.imshow('template2', template2)
-    cv2.imwrite(f'saved_frames/frame_template.jpg', template2)
+    #cv2.imshow('template2', template2)
+    #cv2.imwrite(f'saved_frames/frame_template.jpg', template2)
   
 
     cv2.rectangle(image, top_left, bottom_right, (0, 255, 0), 2)
