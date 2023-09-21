@@ -13,16 +13,12 @@ CLASSES = ["background", "aeroplane", "bicycle", "bird", "boat",
            "dog", "horse", "motorbike", "person", "pottedplant", "sheep",
            "sofa", "train"]
 
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture("http://192.168.1.8:4747/video")
 for i in range(50):
     ret, frame = cap.read()
 
 def main():
     
-    fps_start_time = datetime.datetime.now()
-    fps = 0
-    total_frames = 0
-
     # Tạo thư mục để lưu các frame chứa đối tượng "person"
     os.makedirs("saved_frames", exist_ok=True)
 
@@ -31,7 +27,7 @@ def main():
     while not found_person:
         ret, frame = cap.read()
         frame = imutils.resize(frame, width=600)
-        total_frames = total_frames + 1
+        
         
 
         (H, W) = frame.shape[:2]
@@ -63,18 +59,6 @@ def main():
                
                 found_person = True  # Đặt biến cờ thành True
                 #break  # Thoát khỏi vòng lặp
-
-        fps_end_time = datetime.datetime.now()
-        time_diff = fps_end_time - fps_start_time
-        if time_diff.seconds == 0:
-            fps = 0.0
-        else:
-            fps = (total_frames / time_diff.seconds)
-
-        fps_text = "FPS: {:.2f}".format(fps)
-
-        cv2.putText(frame, fps_text, (5, 30), cv2.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 0, 255), 1)
-
         cv2.imshow("Application", frame)
         key = cv2.waitKey(1)
         if key == ord('q'):
@@ -111,28 +95,29 @@ while True:
     # Vẽ khung cho template
     w, h = template.shape[1], template.shape[0]
     top_left = max_loc # điểm trên cùng bên trái
-    top_right = (top_left[0] + w,top_left[1])# điểm trên cùng bên trái
+   # top_right = (top_left[0] + w,top_left[1])# điểm trên cùng bên trái
     bottom_right = (top_left[0] + w, top_left[1] + h)# điểm dưới cùng bên phải
-    bottom_left =  (top_left[0] , top_left[1] + h)# điểm dưới cùng bên phải
+    #bottom_left =  (top_left[0] , top_left[1] + h)# điểm dưới cùng bên phải
     tâm_x = (top_left[0] + bottom_right[0]) // 2
     tâm_y = (top_left[1] + bottom_right[1]) // 2
 
 
-    template2 = image[top_left[0]:top_right[0], top_left[1]:bottom_left[1]]
+    #template2 = image[top_left[0]:top_right[0], top_left[1]:bottom_left[1]]
     #saved_frame = frame[Y_start:endY, startX:endX]
     #cv2.imshow('template2', template2)
     #cv2.imwrite(f'saved_frames/frame_template.jpg', template2)
   
 
     cv2.rectangle(image, top_left, bottom_right, (0, 255, 0), 2)
-    cv2.circle(image, top_left, 1, (0, 0, 255), 3) 
-    cv2.circle(image, top_right, 1, (0, 0, 255), 3) 
-    cv2.circle(image, bottom_right, 1, (0, 0, 255), 3)
-    cv2.circle(image, bottom_left, 1, (0, 0, 255), 3)
+
+    #cv2.circle(image, top_left, 1, (0, 0, 255), 3) 
+    #cv2.circle(image, top_right, 1, (0, 0, 255), 3) 
+    #cv2.circle(image, bottom_right, 1, (0, 0, 255), 3)
+    #cv2.circle(image, bottom_left, 1, (0, 0, 255), 3)
 
     cv2.circle(image, (tâm_x, tâm_y), 5, (255, 255, 0), -1)# centroi
 
-    coordinates = [top_left, top_right, bottom_right, bottom_left]
+    #coordinates = [top_left, top_right, bottom_right, bottom_left]
     #print("Coordinates Array:", coordinates)
 
     # So sánh tọa độ của template với các đường chia
