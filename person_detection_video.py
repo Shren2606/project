@@ -17,7 +17,8 @@ cap = cv2.VideoCapture(0)
 for i in range(50):
     ret, frame = cap.read()
 
-def person():
+def main():
+    
     fps_start_time = datetime.datetime.now()
     fps = 0
     total_frames = 0
@@ -31,7 +32,7 @@ def person():
         ret, frame = cap.read()
         frame = imutils.resize(frame, width=600)
         total_frames = total_frames + 1
-        count = 0
+        
 
         (H, W) = frame.shape[:2]
 
@@ -46,7 +47,6 @@ def person():
                 idx = int(person_detections[0, 0, i, 1])
 
                 if CLASSES[idx] != "person":
-                    count +=1
                     continue
 
                 person_box = person_detections[0, 0, i, 3:7] * np.array([W, H, W, H])
@@ -62,7 +62,7 @@ def person():
                 
                
                 found_person = True  # Đặt biến cờ thành True
-                break  # Thoát khỏi vòng lặp
+                #break  # Thoát khỏi vòng lặp
 
         fps_end_time = datetime.datetime.now()
         time_diff = fps_end_time - fps_start_time
@@ -82,12 +82,12 @@ def person():
 
     # Kết thúc quá trình kiểm tra person
 
-person()
+main()
 
 template = cv2.imread('data/frame_template.jpg')
 
 while True:
-
+    
     ret, image = cap.read()
 
     # Tính toán kích thước của frame
@@ -157,3 +157,4 @@ while True:
 
 cap.release()
 cv2.destroyAllWindows()
+
