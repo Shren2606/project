@@ -1,21 +1,18 @@
 import cv2
-import imutils
 def main():
-    cap = cv2.VideoCapture('test_video.mp4')
-    
-
+    cap = cv2.VideoCapture("http://192.168.1.8:4747/video")
     while True:
-        ret, frame = cap.read()
-        frame = imutils.resize(frame, width=600)
+        ret, image = cap.read()
+
         if not ret:
+            print("Không thể đọc video")
             break
-
-        cv2.imshow("Video", frame)
-
-        if cv2.waitKey(1) & 0xFF == ord('q'):
+        cv2.imshow('Result', image)
+        print(image.shape)
+        if cv2.waitKey(1) == ord('q'):
             break
-
     cap.release()
     cv2.destroyAllWindows()
 
-main()
+if __name__ == "__main__":
+    main()
