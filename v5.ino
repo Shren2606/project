@@ -1,5 +1,16 @@
+//AGV Machine - Vinay Lanka
+
+//Import Motor - Cytron SPG30E-30K
 #include "Motor.h"
+#include <ros.h>
+#include <geometry_msgs/Twist.h>
 #include <PID_v1.h>
+#include <geometry_msgs/Vector3Stamped.h>
+#include <ros/time.h>
+#include <std_msgs/String.h>
+
+
+ros::NodeHandle nh;
 
 #define BRAKE 0
 #define CW 1
@@ -28,17 +39,6 @@
 #define trig 50
 
 #define LOOPTIME 10
-
-#define red 48
-#define yellow 46
-#define green 44
-
-#define lidar1 53
-#define lidar2 51
-#define lidar3 49
-#define lidar4 47
-#define lidar5 45
-#define lidar6 43
 
 Motor motorleft(MOTOR_A1_PIN, MOTOR_B1_PIN, L_encoderPinA, L_encoderPinB, EN_PIN_1, PWM_MOTOR_1);
 Motor motorright(MOTOR_A2_PIN, MOTOR_B2_PIN, R_encoderPinA, R_encoderPinB, EN_PIN_2, PWM_MOTOR_2);
@@ -80,15 +80,34 @@ float demandx = 0;
 int statusL;
 int statusR;
 
-int statusLidarL;
-int statusLidarR;
 
-bool A, B, C, D, E, F;
 
-bool sensor = false;
+void cmd_vel_cb(const geometry_msgs::Twist& twist) {
+  demandx = twist.linear.x;
+  demandz = twist.angular.z;
+}
+
+ros::Subscriber<geometry_msgs::Twist> sub("cmd_vel", cmd_vel_cb);
+geometry_msgs::Vector3Stamped speed_msg;          //create a "speed_msg" ROS message
+ros::Publisher speed_pub("Arduino/speed", &speed_msg);  //create a publisher to ROS topic "speed" using the "speed_msg" type
+
+std_msgs::String str_msg;
+ros::Publisher chatter("Arduino/chatter", &str_msg);
+
+char hello[13] = "hello world!";
+
+double speed_act_left = 0;   //Actual speed for left wheel in m/s
+double speed_act_right = 0;  //Command speed for left wheel in m/s
 
 void setup() {
-  Serial.begin(9600);
+  nh.initNode();
+  nh.subscribe(sub);
+  nh.advertise(speed_pub);
+  nh.advertise(chatter);
+  Serial.begin(9600);  //prepare to publish speed in ROS topic
+                            //  Serial.begin(115200);
+
+
 
   rightPID.SetMode(AUTOMATIC);
   rightPID.SetSampleTime(100);
@@ -98,9 +117,6 @@ void setup() {
   leftPID.SetSampleTime(100);
   leftPID.SetOutputLimits(-255, 255);
 
-  distancePID.SetMode(AUTOMATIC);
-  distancePID.SetSampleTime(100);
-  distancePID.SetOutputLimits(-11880.0, 11880.0);
 
   attachInterrupt(digitalPinToInterrupt(motorleft.encoder_a), change_left_a, CHANGE);
   attachInterrupt(digitalPinToInterrupt(motorleft.encoder_b), change_left_b, CHANGE);
@@ -109,121 +125,21 @@ void setup() {
 
   digitalWrite(motorleft.en_pin, HIGH);
   digitalWrite(motorright.en_pin, HIGH);
-
-  pinMode(trig, OUTPUT);
-  pinMode(echo, INPUT);
-  pinMode(red, OUTPUT);
-  pinMode(yellow, OUTPUT);
-  pinMode(green, OUTPUT);
-
-  pinMode(lidar1, INPUT_PULLUP);
-  pinMode(lidar2, INPUT_PULLUP);
-  pinMode(lidar3, INPUT_PULLUP);
-  pinMode(lidar4, INPUT_PULLUP);
-  pinMode(lidar5, INPUT_PULLUP);
-  pinMode(lidar6, INPUT_PULLUP);
-  delay(100);
-}
-
-
-void sub() {
-  char dataSerial[100] = "";
-  while (Serial.available() != 0) {
-    Serial.readBytesUntil('\n', dataSerial, sizeof(dataSerial));
-
-    int intValue = atoi(dataSerial);
-    demandx = intValue;
-    //demandx = intValue;
-    if (demandz < 0) {
-      digitalWrite(green, HIGH);
-      digitalWrite(red, LOW);
-    } else {
-      digitalWrite(green, LOW);
-      digitalWrite(red, HIGH);
-    }
-    CounterL = 0;
-    CounterR = 0;
-  }
 }
 
 void loop() {
-  sub();
   Forward();
-
-  // Serial.print("demandx: ");
-  // Serial.print(demandx);
-  // Serial.print(" ");
-  // Serial.print("khoangCach: ");
-  // Serial.print(khoangCach);
-  // Serial.print(" ");
-  // Serial.print("counter L ");
-  // Serial.print(CounterL);
-  // Serial.print(" ");
-  // Serial.print("counter R ");
-  // Serial.println(CounterR);
-
-  motorleft.rotate(statusL, left_output);
-  motorright.rotate(statusR, right_output);
-
-  // Serial.print("left_input: ");
-  // Serial.print(left_input);
-  // Serial.print(" ");
-  // Serial.print("right_input: ");
-  // Serial.print(right_input);
-  // Serial.print(" ");
-  // Serial.print("left_setpoint: ");
-  // Serial.print(left_setpoint);
-  // Serial.print(" ");
-  // Serial.print("right_setpoint: ");
-  // Serial.print(right_setpoint);
-  // Serial.print(" ");
-  // Serial.print("statusLidarR: ");
-  // Serial.print(statusLidarR);
-  // Serial.print(" ");
-  // Serial.print("statusLidarL: ");
-  // Serial.print(statusLidarL);
-  // Serial.print(" ");
-  // Serial.print("demandx: ");
-  // Serial.print(demandx);
-  // Serial.print(" ");
-  // Serial.print("left_output: ");
-  // Serial.print(left_output);
-  // Serial.print(" ");
-  // Serial.print("Right_output: ");
-  // Serial.print(right_output);
-  // Serial.print(" ");
-  // Serial.print("Setpoint: ");
-  // int Setpoint = 10000;
-  // Serial.println(Setpoint);
-  // Serial.print("CounterL: ");
-  // Serial.println(CounterL);
-  // Serial.print(" ");
-  // Serial.print("CounterR: ");
-  // Serial.print(CounterR);
-
-  // Serial.print(" ");
-  // Serial.print("rpmL: ");
-  // Serial.print(rpmL);
-  // Serial.print(" ");
-  // Serial.print("rpmR: ");
-  // Serial.print(rpmR);
-  //  Serial.println();
-
-  //demandx = 0;
-  //demandz = 0;
-  // int Setpoint = 10000;
-  // Serial.print(demandx);  // Gửi giá trị Setpoint
-  // Serial.print(" ");       // Gửi khoảng trắng hoặc dấu phân cách để phân biệt giữa các giá trị
-  // Serial.print(CounterL);
-  // Serial.print(" ");       // Gửi khoảng trắng hoặc dấu phân cách để phân biệt giữa các giá trị
-  // Serial.println(CounterR);
+  publishSpeed(LOOPTIME);
+  str_msg.data = hello;
+  chatter.publish(&str_msg);
+  nh.spinOnce();
 }
 
 
 void Forward() {
 
   thoigian = millis();
-  if (thoigian - hientai >= timecho) {
+  if (thoigian - hientai >= LOOPTIME) {
 
     hientai = thoigian;
 
@@ -248,76 +164,40 @@ void Forward() {
     leftPID.Compute();
     rightPID.Compute();
 
-    lidar();
+
 
     if (left_output < 0) {
-      if (statusLidarL == 1) statusL = CCW;
-      else statusL = CW;
+      statusL = CCW;
     } else {
-      if (statusLidarL == 1) statusL = CW;
-      else statusL = BRAKE;
+      statusL = CW;
     }
 
     if (right_output < 0) {
-      if (statusLidarR == 1) statusR = CCW;
-      else statusR = CW;
+      statusR = CCW;
     } else {
-      if (statusLidarR == 1) statusR = CW;
-      else statusR = BRAKE;
+      statusR = CW;
     }
 
     left_output = abs(left_output);
     right_output = abs(right_output);
+    motorleft.rotate(statusL, left_output);
+    motorright.rotate(statusR, right_output);
   }
 }
 
-void lidar() {
-  A = digitalRead(lidar1);
-  B = digitalRead(lidar2);
-  C = digitalRead(lidar3);
-  D = digitalRead(lidar4);
-  E = digitalRead(lidar5);
-  F = digitalRead(lidar6);
-  statusLidarL = logic_functionL(A, B, C, D, E, F);  // Gọi hàm logic_function với các giá trị đầu vào
-  statusLidarR = logic_functionR(A, B, C, D, E, F);
-}
 
-int logic_functionL(bool A, bool B, bool C, bool D, bool E, bool F) {
-
-  // Công thức logic CD + B'EF + A'DE + B'DE + DEF + A'BD'
-  bool result = (C && D) || (!B && E && F) || (!A && D && E) || (!B && D && E) || (D && E && F) || (!A && B && D);
-  return result;
-}
-
-int logic_functionR(bool A, bool B, bool C, bool D, bool E, bool F) {
-
-
-  // Công thức logic CD + DEF' + BD'E' + BD'F' + ABE' + ABC
-  bool result = (C && D) || (D && E && !F) || (B && !D && !E) || (B && !D && !F) || (A && B && !E) || (A && B && C);
-  return result;
+//Publish function for odometry, uses a vector type message to send the data (message type is not meant for that but that's easier than creating a specific message type)
+void publishSpeed(double time) {
+  speed_msg.header.stamp = nh.now();  //timestamp for odometry data
+  speed_msg.vector.x = 1000;          //left wheel speed (in m/s)
+  speed_msg.vector.y = 2000;          //right wheel speed (in m/s)
+  speed_msg.vector.z = time / 1000;   //looptime, should be the same as specified in LOOPTIME (in s)
+  speed_pub.publish(&speed_msg);
+  //  nh.loginfo("Publishing odometry");
 }
 
 
-
-void distance() {
-
-  digitalWrite(trig, LOW);
-  delayMicroseconds(2);
-  digitalWrite(trig, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(trig, LOW);
-
-  thoiGianDo = pulseIn(echo, HIGH);
-  khoangCach = thoiGianDo * 0.034 / 2;
-  float khoangCachFloat = (float)khoangCach;
-  input = -khoangCachFloat;
-  distancePID.Compute();
-  demandx = output;
-
-  // Gửi dữ liệu dưới dạng chuỗi
-  //Serial.println(khoangCachFloat);
-  delay(10);
-}
+// ************** encoders interrupts **************
 
 // ************** encoder 1 *********************
 void change_left_a() {
